@@ -52,6 +52,7 @@ flags.DEFINE_float("flow_consistency_beta",       0.05,    "Beta for flow consis
 
 ##### Testing Configurations #####
 flags.DEFINE_string("output_dir",                 None,    "Test result output directory")
+flags.DEFINE_string("dataset",                  "kitti",   "Dataset name (kitti, tum)")
 flags.DEFINE_string("depth_test_split",        "eigen",    "KITTI depth split, eigen or stereo")
 flags.DEFINE_integer("pose_test_seq",                9,    "KITTI Odometry Sequence ID to test")
 
