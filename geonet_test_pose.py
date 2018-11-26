@@ -26,16 +26,9 @@ def test_pose(opt):
     saver = tf.train.Saver([var for var in tf.model_variables()]) 
 
     ##### load test frames #####
-    #seq_dir = os.path.join(opt.dataset_dir, 'sequences', '%.2d' % opt.pose_test_seq)
-    #img_dir = os.path.join(seq_dir, 'image_2')
-    #N = len(glob(img_dir + '/*.png'))
-    #test_frames = ['%.2d %.6d' % (opt.pose_test_seq, n) for n in range(N)]
     test_frames = load_test_frames(opt)
 
     ##### load time file #####
-    #with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
-    #    times = f.readlines()
-    #times = np.array([float(s[:-1]) for s in times])
     times = load_times(opt)
 
     ##### Go! #####
