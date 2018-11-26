@@ -3,16 +3,26 @@ import os
 import math
 import scipy.misc
 import numpy as np
+import tensorflow as tf
 import argparse
 from glob import glob
+from geonet_test_pose import load_test_frames, load_times
 from pose_evaluation_utils import mat2euler, dump_pose_seq_TUM
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--dataset_dir", type=str, help="path to kitti odometry dataset")
-parser.add_argument("--output_dir",  type=str, help="path to output pose snippets")
-parser.add_argument("--seq_id",      type=int, default=9, help="sequence id to generate groundtruth pose snippets")
-parser.add_argument("--seq_length",  type=int, default=5, help="sequence length of pose snippets")
-args = parser.parse_args()
+flags = tf.app.flags
+flags.DEFINE_string("dataset",                  "kitti",   "Dataset name (kitti, tum)")
+#parser.add_argument("--dataset",     type=str, help="name of dataset (kitti, tum)")
+flags.DEFINE_string("dataset_dir",                  "",    "Path to dataset files")
+#parser.add_argument("--dataset_dir", type=str, help="path to dataset files")
+flags.DEFINE_string("output_dir",                 None,    "Path to output pose snippets")
+#parser.add_argument("--output_dir",  type=str, help="path to output pose snippets")
+flags.DEFINE_string("pose_test_seq",                "9",   "Sequence name to generate groundtruth pose snippets")
+#parser.add_argument("--seq_id",      type=str, default="9", help="sequence name to generate groundtruth pose snippets")
+flags.DEFINE_integer("seq_length",                   5,    "Sequence length of pose snippets")
+#arser.add_argument("--seq_length",  type=int, default=5, help="sequence length of pose snippets")
+
+
+opt = flags.FLAGS
 
 def is_valid_sample(frames, tgt_idx, seq_length):
     N = len(frames)
@@ -29,18 +39,22 @@ def is_valid_sample(frames, tgt_idx, seq_length):
     return False
 
 def main():
-    pose_gt_dir = args.dataset_dir + 'poses/'
-    if not os.path.isdir(args.output_dir):
-        os.makedirs(args.output_dir)
-    seq_dir = os.path.join(args.dataset_dir, 'sequences', '%.2d' % args.seq_id)
-    img_dir = os.path.join(seq_dir, 'image_2')
-    N = len(glob(img_dir + '/*.png'))
-    test_frames = ['%.2d %.6d' % (args.seq_id, n) for n in range(N)]
-    with open(args.dataset_dir + 'sequences/%.2d/times.txt' % args.seq_id, 'r') as f:
-        times = f.readlines()
-    times = np.array([float(s[:-1]) for s in times])
+    pose_gt_dir = opt.dataset_dir + 'poses/'
+    if not os.path.isdir(opt.output_dir):
+        os.makedirs(opt.output_dir)
+    #seq_dir = os.path.join(opt.dataset_dir, 'sequences', '%.2d' % opt.pose_test_seq)
+    #img_dir = os.path.join(seq_dir, 'image_2')
+    #N = len(glob(img_dir + '/*.png'))
+    #test_frames = ['%.2d %.6d' % (opt.pose_test_seq, n) for n in range(N)]
+    # Load test frames
+    N, test_frames = load_test_frames(opt)
+    # Load time file
+    times = load_times(opt)
+    #with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
+    #    times = f.readlines()
+    #times = np.array([float(s[:-1]) for s in times])
 
-    with open(pose_gt_dir + '%.2d.txt' % args.seq_id, 'r') as f:
+    with open(pose_gt_dir + '%.2d.txt' % opt.pose_test_seq, 'r') as f:
         poses = f.readlines()
     poses_gt = []
     for pose in poses:
@@ -51,15 +65,15 @@ def main():
         poses_gt.append(tran.tolist() + [rx, ry, rz])
     poses_gt = np.array(poses_gt)
 
-    max_src_offset = (args.seq_length - 1)//2
+    max_src_offset = (opt.seq_length - 1)//2
     for tgt_idx in range(N):
-        if not is_valid_sample(test_frames, tgt_idx, args.seq_length):
+        if not is_valid_sample(test_frames, tgt_idx, opt.seq_length):
             continue
         if tgt_idx % 100 == 0:
             print('Progress: %d/%d' % (tgt_idx, N))
         pred_poses = poses_gt[tgt_idx - max_src_offset:tgt_idx + max_src_offset + 1]
         curr_times = times[tgt_idx - max_src_offset:tgt_idx + max_src_offset + 1]
-        out_file = args.output_dir + '%.6d.txt' % (tgt_idx - max_src_offset)
+        out_file = opt.output_dir + '%.6d.txt' % (tgt_idx - max_src_offset)
         dump_pose_seq_TUM(out_file, pred_poses, curr_times)
 
 main()
