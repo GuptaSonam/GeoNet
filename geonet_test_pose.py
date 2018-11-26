@@ -91,8 +91,17 @@ def load_test_frames(opt):
     return test_frames
 
 def load_times(opt):
-    with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
-        times = f.readlines()
+    if opt.dataset = 'kitti':
+        with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
+            times = f.readlines()
+
+    if opt.dataset = 'tum':
+        with open(opt.dataset_dir + '%s/rgb.txt' % opt.pose_test_seq, 'r') as f:
+            lines = f.readlines()
+
+        # Filter out comment lines and image names
+        times = [line.split()[0] for line in lines if not line.startswith('#')]
+
     times = np.array([float(s[:-1]) for s in times])
 
     return times
