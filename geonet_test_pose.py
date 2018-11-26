@@ -74,8 +74,9 @@ def load_test_frames(opt):
     if opt.dataset == 'tum':
         seq_dir = os.path.join(opt.dataset_dir, '%s' % opt.pose_test_seq)
         img_dir = os.path.join(seq_dir, 'rgb')
-        N = len(glob(img_dir + '/*.png'))
-        test_frames = ['%s %.6d' % (opt.pose_test_seq, n) for n in range(N)]
+        imgs = os.listdir(img_dir)
+        N = len(imgs)
+        test_frames = (['%s %s' % (opt.pose_test_seq, ".".join(f.split(".")[:-1])) for f in imgs])
 
     return N, test_frames
 
