@@ -46,12 +46,7 @@ def test_pose(opt):
                 idx = tgt_idx + b
                 if idx >= N-max_src_offset:
                     break
-                image_seq = load_image_sequence(opt.dataset_dir,
-                                                test_frames,
-                                                idx,
-                                                opt.seq_length,
-                                                opt.img_height,
-                                                opt.img_width)
+                image_seq = load_image_sequence(opt, test_frames, idx)
                 inputs[b] = image_seq
 
             pred = sess.run(fetches, feed_dict={input_uint8: inputs})
@@ -99,24 +94,25 @@ def load_times(opt):
 
     return times
 
-def load_image_sequence(dataset_dir, 
-                        frames, 
-                        tgt_idx, 
-                        seq_length, 
-                        img_height, 
-                        img_width):
-    half_offset = int((seq_length - 1)/2)
+def load_image_sequence(opt, frames, tgt_idx):
+    half_offset = int((opt.seq_length - 1)/2)
     for o in range(-half_offset, half_offset+1):
         curr_idx = tgt_idx + o
         curr_drive, curr_frame_id = frames[curr_idx].split(' ')
-        img_file = os.path.join(
-            dataset_dir, 'sequences', '%s/image_2/%s.png' % (curr_drive, curr_frame_id))
+
+        if opt.dataset == 'kitti':
+            img_file = os.path.join(
+                opt.dataset_dir, 'sequences', '%s/image_2/%s.png' % (curr_drive, curr_frame_id))
+        if opt.dataset == 'tum':
+            img_file = os.path.join(opt.dataset_dir, '%s/rgb/%s.png' % (curr_drive, curr_frame_id))
+
         curr_img = scipy.misc.imread(img_file)
-        curr_img = scipy.misc.imresize(curr_img, (img_height, img_width))
+        curr_img = scipy.misc.imresize(curr_img, (opt.img_height, opt.img_width))
         if o == -half_offset:
             image_seq = curr_img
         elif o == 0:
             image_seq = np.dstack((curr_img, image_seq))
         else:
             image_seq = np.dstack((image_seq, curr_img))
+
     return image_seq
