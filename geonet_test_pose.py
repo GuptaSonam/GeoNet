@@ -29,7 +29,7 @@ def test_pose(opt):
     test_frames = load_test_frames(opt)
 
     ##### load time file #####
-    times = load_times(opt)
+    N, times = load_times(opt)
 
     ##### Go! #####
     max_src_offset = (opt.seq_length - 1) // 2
@@ -76,7 +76,7 @@ def load_test_frames(opt):
         N = len(glob(img_dir + '/*.png'))
         test_frames = ['%s %.6d' % (opt.pose_test_seq, n) for n in range(N)]
 
-    return test_frames
+    return N, test_frames
 
 def load_times(opt):
     if opt.dataset = 'kitti':
