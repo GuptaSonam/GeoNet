@@ -1,13 +1,15 @@
 from __future__ import division
+import inspect
 import os
-import math
-import scipy.misc
+import sys
+# hack to import files from different directory
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 import numpy as np
 import tensorflow as tf
-import argparse
-from glob import glob
-from geonet_test_pose import load_test_frames, load_times
 from pose_evaluation_utils import mat2euler, dump_pose_seq_TUM
+from geonet_test_pose import load_test_frames, load_times
 
 flags = tf.app.flags
 flags.DEFINE_string("dataset",                  "kitti",   "Dataset name (kitti, tum)")
@@ -42,17 +44,10 @@ def main():
     pose_gt_dir = opt.dataset_dir + 'poses/'
     if not os.path.isdir(opt.output_dir):
         os.makedirs(opt.output_dir)
-    #seq_dir = os.path.join(opt.dataset_dir, 'sequences', '%.2d' % opt.pose_test_seq)
-    #img_dir = os.path.join(seq_dir, 'image_2')
-    #N = len(glob(img_dir + '/*.png'))
-    #test_frames = ['%.2d %.6d' % (opt.pose_test_seq, n) for n in range(N)]
     # Load test frames
     N, test_frames = load_test_frames(opt)
     # Load time file
     times = load_times(opt)
-    #with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
-    #    times = f.readlines()
-    #times = np.array([float(s[:-1]) for s in times])
 
     with open(pose_gt_dir + '%.2d.txt' % opt.pose_test_seq, 'r') as f:
         poses = f.readlines()
