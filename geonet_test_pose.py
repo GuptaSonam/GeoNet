@@ -26,15 +26,17 @@ def test_pose(opt):
     saver = tf.train.Saver([var for var in tf.model_variables()]) 
 
     ##### load test frames #####
-    seq_dir = os.path.join(opt.dataset_dir, 'sequences', '%.2d' % opt.pose_test_seq)
-    img_dir = os.path.join(seq_dir, 'image_2')
-    N = len(glob(img_dir + '/*.png'))
-    test_frames = ['%.2d %.6d' % (opt.pose_test_seq, n) for n in range(N)]
+    #seq_dir = os.path.join(opt.dataset_dir, 'sequences', '%.2d' % opt.pose_test_seq)
+    #img_dir = os.path.join(seq_dir, 'image_2')
+    #N = len(glob(img_dir + '/*.png'))
+    #test_frames = ['%.2d %.6d' % (opt.pose_test_seq, n) for n in range(N)]
+    test_frames = load_test_frames(opt)
 
     ##### load time file #####
-    with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
-        times = f.readlines()
-    times = np.array([float(s[:-1]) for s in times])
+    #with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
+    #    times = f.readlines()
+    #times = np.array([float(s[:-1]) for s in times])
+    times = load_times(opt)
 
     ##### Go! #####
     max_src_offset = (opt.seq_length - 1) // 2
@@ -72,6 +74,28 @@ def test_pose(opt):
                 curr_times = times[idx - max_src_offset:idx + max_src_offset + 1]
                 out_file = opt.output_dir + '%.6d.txt' % (idx - max_src_offset)
                 dump_pose_seq_TUM(out_file, pred_pose, curr_times)
+
+def load_test_frames(opt):
+    if opt.dataset == 'kitti':
+        seq_dir = os.path.join(opt.dataset_dir, 'sequences', '%.2d' % int(opt.pose_test_seq))
+        img_dir = os.path.join(seq_dir, 'image_2')
+        N = len(glob(img_dir + '/*.png'))
+        test_frames = ['%.2d %.6d' % (int(opt.pose_test_seq), n) for n in range(N)]
+
+    if opt.dataset == 'tum':
+        seq_dir = os.path.join(opt.dataset_dir, '%s' % opt.pose_test_seq)
+        img_dir = os.path.join(seq_dir, 'rgb')
+        N = len(glob(img_dir + '/*.png'))
+        test_frames = ['%s %.6d' % (opt.pose_test_seq, n) for n in range(N)]
+
+    return test_frames
+
+def load_times(opt):
+    with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
+        times = f.readlines()
+    times = np.array([float(s[:-1]) for s in times])
+
+    return times
 
 def load_image_sequence(dataset_dir, 
                         frames, 
