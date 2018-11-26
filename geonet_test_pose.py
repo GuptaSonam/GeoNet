@@ -26,10 +26,10 @@ def test_pose(opt):
     saver = tf.train.Saver([var for var in tf.model_variables()]) 
 
     ##### load test frames #####
-    test_frames = load_test_frames(opt)
+    N, test_frames = load_test_frames(opt)
 
     ##### load time file #####
-    N, times = load_times(opt)
+    times = load_times(opt)
 
     ##### Go! #####
     max_src_offset = (opt.seq_length - 1) // 2
