@@ -16,7 +16,7 @@ def test_pose(opt):
     ##### init #####
     input_uint8 = tf.placeholder(tf.uint8, [opt.batch_size, 
         opt.img_height, opt.img_width, opt.seq_length * 3], 
-        name='raw_input')
+            name='raw_input')
     tgt_image = input_uint8[:,:,:,:3]
     src_image_stack = input_uint8[:,:,:,3:]
 
@@ -63,6 +63,7 @@ def test_pose(opt):
                 out_file = opt.output_dir + '%.6d.txt' % (idx - max_src_offset)
                 dump_pose_seq_TUM(out_file, pred_pose, curr_times)
 
+
 def load_test_frames(opt):
     if opt.dataset == 'kitti':
         seq_dir = os.path.join(opt.dataset_dir, 'sequences', '%.2d' % int(opt.pose_test_seq))
@@ -77,6 +78,7 @@ def load_test_frames(opt):
         test_frames = ['%s %.6d' % (opt.pose_test_seq, n) for n in range(N)]
 
     return N, test_frames
+
 
 def load_times(opt):
     if opt.dataset == 'kitti':
@@ -93,6 +95,7 @@ def load_times(opt):
     times = np.array([float(s[:-1]) for s in times])
 
     return times
+
 
 def load_image_sequence(opt, frames, tgt_idx):
     half_offset = int((opt.seq_length - 1)/2)
