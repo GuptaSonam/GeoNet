@@ -83,7 +83,7 @@ def load_test_frames(opt):
 
 def load_times(opt):
     if opt.dataset == 'kitti':
-        with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % opt.pose_test_seq, 'r') as f:
+        with open(opt.dataset_dir + 'sequences/%.2d/times.txt' % int(opt.pose_test_seq), 'r') as f:
             times = f.readlines()
 
     if opt.dataset == 'tum':
