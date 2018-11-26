@@ -39,7 +39,7 @@ def dump_example(n, args):
     fy = intrinsics[1, 1]
     cx = intrinsics[0, 2]
     cy = intrinsics[1, 2]
-    print(args.dump_root) # pmedina
+
     dump_dir = os.path.join(args.dump_root, example['folder_name'])
 
     try: 
