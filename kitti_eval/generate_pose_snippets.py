@@ -8,7 +8,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 import numpy as np
 import tensorflow as tf
-from pose_evaluation_utils import mat2euler, dump_pose_seq_TUM
+from pose_evaluation_utils import mat2euler, quat2mat, dump_pose_seq_TUM
 from geonet_test_pose import load_test_frames, load_times
 
 flags = tf.app.flags
@@ -37,25 +37,49 @@ def is_valid_sample(frames, tgt_idx, seq_length):
 
 
 def main():
-    pose_gt_dir = opt.dataset_dir + 'poses/'
     if not os.path.isdir(opt.output_dir):
         os.makedirs(opt.output_dir)
+
     # Load test frames
     N, test_frames = load_test_frames(opt)
-    # Load time file
+    # Load timestamps
     times = load_times(opt)
 
-    with open(pose_gt_dir + '%.2d.txt' % int(opt.pose_test_seq), 'r') as f:
-        poses = f.readlines()
-    poses_gt = []
-    for pose in poses:
-        pose = np.array([float(s) for s in pose[:-1].split(' ')]).reshape((3, 4))
-        rot = np.linalg.inv(pose[:, :3])
-        tran = -np.dot(rot, pose[:, 3].transpose())
-        rz, ry, rx = mat2euler(rot)
-        poses_gt.append(tran.tolist() + [rx, ry, rz])
-    poses_gt = np.array(poses_gt)
+    # Read groung-truth poses
+    if opt.dataset == 'kitti':
+        pose_gt_dir = opt.dataset_dir + 'poses/'
 
+        with open(pose_gt_dir + '%.2d.txt' % int(opt.pose_test_seq), 'r') as f:
+            poses = f.readlines()
+        poses_gt = []
+        for pose in poses:
+            pose = np.array([float(s) for s in pose[:-1].split(' ')]).reshape((3, 4))
+            rot = np.linalg.inv(pose[:, :3])
+            tran = -np.dot(rot, pose[:, 3].transpose())
+            rz, ry, rx = mat2euler(rot)
+            poses_gt.append(tran.tolist() + [rx, ry, rz])
+        poses_gt = np.array(poses_gt)
+
+    if opt.dataset == 'tum':
+        pose_gt_dir = opt.dataset_dir
+
+        with open(pose_gt_dir + '%s/groundtruth.txt' % opt.pose_test_seq, 'r') as f:
+            poses = f.readlines()
+        # Filter out comment lines and timestamps then convert to float
+        poses = [pose.split()[1:] for pose in poses if not pose.startswith('#')]
+        poses = np.array(poses).astype(np.float)
+
+        # Translate poses from [tx ty tz qx qy qz qw] to [tx ty tz rx ry rz]
+        poses_gt = []
+        for pose in poses:
+            tran = pose[0:3]
+            # Get quaternion as qw qx qy qz (original format is qx qy qz qw)
+            quat = pose[np.array([6, 3, 4, 5])]
+            rot = quat2mat(quat)
+            rz, ry, rx = mat2euler(rot)
+            poses_gt.append(tran.tolist() + [rx, ry, rz])
+
+    # Store sequences of GT poses
     max_src_offset = (opt.seq_length - 1)//2
     for tgt_idx in range(N):
         if not is_valid_sample(test_frames, tgt_idx, opt.seq_length):
@@ -67,5 +91,5 @@ def main():
         out_file = opt.output_dir + '%.6d.txt' % (tgt_idx - max_src_offset)
         dump_pose_seq_TUM(out_file, pred_poses, curr_times)
 
-main()
 
+main()
