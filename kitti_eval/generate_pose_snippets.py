@@ -7,18 +7,18 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 import numpy as np
-import tensorflow as tf
+import argparse
 from pose_evaluation_utils import mat2euler, quat2mat, dump_pose_seq_TUM
 from geonet_test_pose import load_test_frames, load_times
 
-flags = tf.app.flags
-flags.DEFINE_string("dataset",                  "kitti",   "Dataset name (kitti, tum)")
-flags.DEFINE_string("dataset_dir",                  "",    "Path to dataset files")
-flags.DEFINE_string("output_dir",                 None,    "Path to output pose snippets")
-flags.DEFINE_string("pose_test_seq",                "9",   "Sequence name to generate groundtruth pose snippets")
-flags.DEFINE_integer("seq_length",                   5,    "Sequence length of pose snippets")
+parser = argparse.ArgumentParser()
+parser.add_argument("--dataset", type=str, default="kitti", help="Dataset name (kitti, tum)")
+parser.add_argument("--dataset_dir", type=str, help="Path to dataset files")
+parser.add_argument("--output_dir", type=str, help="Path to output pose snippets")
+parser.add_argument("--pose_test_seq", type=str, default="9", help="Sequence name to generate groundtruth pose snippets")
+parser.add_argument("--seq_length", type=int, default=5, help="Sequence length of pose snippets")
 
-opt = flags.FLAGS
+args = parser.parse_args()
 
 
 def is_valid_sample(frames, tgt_idx, seq_length):
@@ -37,19 +37,19 @@ def is_valid_sample(frames, tgt_idx, seq_length):
 
 
 def main():
-    if not os.path.isdir(opt.output_dir):
-        os.makedirs(opt.output_dir)
+    if not os.path.isdir(args.output_dir):
+        os.makedirs(args.output_dir)
 
     # Load test frames
-    N, test_frames = load_test_frames(opt)
+    N, test_frames = load_test_frames(args)
     # Load timestamps
-    times = load_times(opt)
+    times = load_times(args)
 
     # Read groung-truth poses
-    if opt.dataset == 'kitti':
-        pose_gt_dir = opt.dataset_dir + 'poses/'
+    if args.dataset == 'kitti':
+        pose_gt_dir = args.dataset_dir + 'poses/'
 
-        with open(pose_gt_dir + '%.2d.txt' % int(opt.pose_test_seq), 'r') as f:
+        with open(pose_gt_dir + '%.2d.txt' % int(args.pose_test_seq), 'r') as f:
             poses = f.readlines()
         poses_gt = []
         for pose in poses:
@@ -60,10 +60,10 @@ def main():
             poses_gt.append(tran.tolist() + [rx, ry, rz])
         poses_gt = np.array(poses_gt)
 
-    if opt.dataset == 'tum':
-        pose_gt_dir = opt.dataset_dir
+    if args.dataset == 'tum':
+        pose_gt_dir = args.dataset_dir
 
-        with open(pose_gt_dir + '%s/groundtruth.txt' % opt.pose_test_seq, 'r') as f:
+        with open(pose_gt_dir + '%s/groundtruth.txt' % args.pose_test_seq, 'r') as f:
             poses = f.readlines()
         # Filter out comment lines and timestamps then convert to float
         poses = [pose.split()[1:] for pose in poses if not pose.startswith('#')]
@@ -80,15 +80,15 @@ def main():
             poses_gt.append(tran.tolist() + [rx, ry, rz])
 
     # Store sequences of GT poses
-    max_src_offset = (opt.seq_length - 1)//2
+    max_src_offset = (args.seq_length - 1)//2
     for tgt_idx in range(N):
-        if not is_valid_sample(test_frames, tgt_idx, opt.seq_length):
+        if not is_valid_sample(test_frames, tgt_idx, args.seq_length):
             continue
         if tgt_idx % 100 == 0:
             print('Progress: %d/%d' % (tgt_idx, N))
         pred_poses = poses_gt[tgt_idx - max_src_offset:tgt_idx + max_src_offset + 1]
         curr_times = times[tgt_idx - max_src_offset:tgt_idx + max_src_offset + 1]
-        out_file = opt.output_dir + '%.6d.txt' % (tgt_idx - max_src_offset)
+        out_file = args.output_dir + '%.6d.txt' % (tgt_idx - max_src_offset)
         dump_pose_seq_TUM(out_file, pred_poses, curr_times)
 
 
