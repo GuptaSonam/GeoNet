@@ -23,8 +23,8 @@ flags.DEFINE_string("pose_test_seq",                "9",   "Sequence name to gen
 flags.DEFINE_integer("seq_length",                   5,    "Sequence length of pose snippets")
 #arser.add_argument("--seq_length",  type=int, default=5, help="sequence length of pose snippets")
 
-
 opt = flags.FLAGS
+
 
 def is_valid_sample(frames, tgt_idx, seq_length):
     N = len(frames)
@@ -40,6 +40,7 @@ def is_valid_sample(frames, tgt_idx, seq_length):
         return True
     return False
 
+
 def main():
     pose_gt_dir = opt.dataset_dir + 'poses/'
     if not os.path.isdir(opt.output_dir):
@@ -49,13 +50,13 @@ def main():
     # Load time file
     times = load_times(opt)
 
-    with open(pose_gt_dir + '%.2d.txt' % opt.pose_test_seq, 'r') as f:
+    with open(pose_gt_dir + '%.2d.txt' % int(opt.pose_test_seq), 'r') as f:
         poses = f.readlines()
     poses_gt = []
     for pose in poses:
-        pose = np.array([float(s) for s in pose[:-1].split(' ')]).reshape((3,4))
-        rot = np.linalg.inv(pose[:,:3])
-        tran = -np.dot(rot, pose[:,3].transpose())
+        pose = np.array([float(s) for s in pose[:-1].split(' ')]).reshape((3, 4))
+        rot = np.linalg.inv(pose[:, :3])
+        tran = -np.dot(rot, pose[:, 3].transpose())
         rz, ry, rx = mat2euler(rot)
         poses_gt.append(tran.tolist() + [rx, ry, rz])
     poses_gt = np.array(poses_gt)
