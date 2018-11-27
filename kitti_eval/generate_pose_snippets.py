@@ -13,15 +13,10 @@ from geonet_test_pose import load_test_frames, load_times
 
 flags = tf.app.flags
 flags.DEFINE_string("dataset",                  "kitti",   "Dataset name (kitti, tum)")
-#parser.add_argument("--dataset",     type=str, help="name of dataset (kitti, tum)")
 flags.DEFINE_string("dataset_dir",                  "",    "Path to dataset files")
-#parser.add_argument("--dataset_dir", type=str, help="path to dataset files")
 flags.DEFINE_string("output_dir",                 None,    "Path to output pose snippets")
-#parser.add_argument("--output_dir",  type=str, help="path to output pose snippets")
 flags.DEFINE_string("pose_test_seq",                "9",   "Sequence name to generate groundtruth pose snippets")
-#parser.add_argument("--seq_id",      type=str, default="9", help="sequence name to generate groundtruth pose snippets")
 flags.DEFINE_integer("seq_length",                   5,    "Sequence length of pose snippets")
-#arser.add_argument("--seq_length",  type=int, default=5, help="sequence length of pose snippets")
 
 opt = flags.FLAGS
 
