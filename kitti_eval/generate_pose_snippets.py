@@ -12,11 +12,11 @@ from pose_evaluation_utils import mat2euler, quat2mat, dump_pose_seq_TUM
 from geonet_test_pose import load_test_frames, load_times
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--dataset", type=str, default="kitti", help="Dataset name (kitti, tum)")
-parser.add_argument("--dataset_dir", type=str, help="Path to dataset files")
-parser.add_argument("--output_dir", type=str, help="Path to output pose snippets")
-parser.add_argument("--pose_test_seq", type=str, default="9", help="Sequence name to generate groundtruth pose snippets")
-parser.add_argument("--seq_length", type=int, default=5, help="Sequence length of pose snippets")
+parser.add_argument("--dataset",       type=str, default="kitti", help="Dataset name (kitti, tum)")
+parser.add_argument("--dataset_dir",   type=str,                  help="Path to dataset files")
+parser.add_argument("--output_dir",    type=str,                  help="Path to output pose snippets")
+parser.add_argument("--pose_test_seq", type=str, default="9",     help="Sequence name to generate groundtruth pose snippets")
+parser.add_argument("--seq_length",    type=int, default=5,       help="Sequence length of pose snippets")
 
 args = parser.parse_args()
 
