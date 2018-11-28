@@ -21,7 +21,7 @@ def merge_sequences_poses(ps_arr):
 
     poses_global = []
     first_seq = True
-    id_global = 1
+    id_global = 0
 
     for ps in ps_arr:
         if first_seq:
@@ -29,18 +29,20 @@ def merge_sequences_poses(ps_arr):
             first_seq = False
         else:
             # TODO: code
+            ps_ = []
             p = ps[-1]
             p_ = np.dot(poses_global[id_global], p)
             ps_.append(p_)
-
+        
         id_global = id_global+1
 
         # Add to global poses
         for pose_global in ps_:
             poses_global.append(pose_global)
 
+    # convert to sequence
+    poses_global = np.stack(poses_global)
     # get interesting values
-    print(poses_global)
     txs = poses_global[:, 0, 3]
     tys = poses_global[:, 1, 3]
     tzs = poses_global[:, 2, 3]
